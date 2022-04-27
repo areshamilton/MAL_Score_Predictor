@@ -28,12 +28,12 @@ def compare(a, b):
 def main():
     training = read_csv('training.csv')
     testing = read_csv('test.csv')
-    for train in training:
+    for test in testing:
 
         #this section should be in parallel
-        for test in testing:
+        for train in training:
             value = compare(train,test)
-            print("Comparing \'{0}\' vs \'{1}\'. Result: {2}".format(train.title, test.title, value))
+            print("Comparing \'{0}\' vs \'{1}\'. Result: {2}".format(test.title, train.title, value))
 
 
 if __name__=="__main__":

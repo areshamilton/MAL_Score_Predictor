@@ -7,7 +7,7 @@ from lxml import etree
 import os
 import requests
 
-def get_show(link):
+def get_info(link):
     html_text = requests.get(link).text
     soup = BeautifulSoup(html_text, 'lxml')
     title = soup.find('h1', class_ = "title-name h1_bold_none").text
@@ -74,7 +74,7 @@ def get_show(link):
 
 
 def main():
-    get_show('https://myanimelist.net/anime/48736/Sono_Bisque_Doll_wa_Koi_wo_Suru')
+    get_info('https://myanimelist.net/anime/48736/Sono_Bisque_Doll_wa_Koi_wo_Suru')
 
 if __name__=="__main__":
     main()
