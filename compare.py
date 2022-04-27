@@ -1,4 +1,5 @@
 import csv
+import random
 
 class Anime():
     title = ''
@@ -22,7 +23,8 @@ def read_csv(filename):
 
 # Compares the set of info for a and b and returns the intesect
 def compare(a, b):
-    return len(a.info.intersection(b.info))
+    #return len(a.info.intersection(b.info))
+    return round(random.uniform(0, 1), 2)
 
 
 def main():
