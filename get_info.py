@@ -57,15 +57,16 @@ def get_info(link):
     for each in actors:
         result.append(each.text.replace('Japanese','').strip('\n'))
     
-    print(result)
+    #print(result)
+    return result
 
 
 def main():
-    get_info('https://myanimelist.net/anime/40356/Tate_no_Yuusha_no_Nariagari_Season_2')
+    output = get_info('https://myanimelist.net/anime/50380/Paripi_Koumei')
 
-    # output_filename = ''
-    # with open(output_filename, 'a') as file_object:
-    #     file_object.write('hello')
+    output_filename = 'output.csv'
+    with open(output_filename, 'a') as file_object:
+        file_object.write(str(output).strip('[]')+'\n')
 
 
 if __name__=="__main__":
