@@ -8,35 +8,65 @@ import os
 import requests
 
 def get_info(link):
+    result = []
+
     html_text = requests.get(link).text
     soup = BeautifulSoup(html_text, 'lxml')
+
     title = soup.find('h1', class_ = "title-name h1_bold_none").text
-    score = soup.find('span', itemprop = "ratingValue").text
-    studio = soup.find('span', text = "Studios:").find_next_sibling().text
-    source = soup.find('span', text = "Source:").next_sibling.strip()
-    genre = soup.find('span', text = "Genres:")
-    genres = genre.find_next_siblings('span', itemprop = "genre")
-    demographic = soup.find('span', text = "Demographic:").find_next_sibling().text
+
+    #score
+    try:
+        score = soup.find('span', itemprop = "ratingValue").text
+    except AttributeError:
+        score = '-1'
+
+    #studio
+    studios = soup.find('span', text = "Studios:")
+    studio = studios.find_next_siblings('a')
+
+    try:
+        source = soup.find('span', text = "Source:").next_sibling.strip()
+    except AttributeError:
+        source = ''
+
+    #This finds both genres and themes
+    genres = soup.find_all('span', itemprop = 'genre')
+    
+    try:
+        demographic = soup.find('span', text = "Demographic:").find_next_sibling().text
+    except:
+        demographic = ''
+    
     actors = soup.find_all(class_ ="va-t ar pl4 pr4")
-    theme = soup.find('span', text = "Themes:")
-    themes = theme.find_next_siblings('span', itemprop = 'genre')
 
-    print(title)
-    print(score)
-    print(studio)
-    print(source)
-    print(demographic)
+    #print(studio)
+
+    #build the result
+    result.append(title)
+    result.append(score)
+    if studio[0].text != 'add some':
+        for each in studio:
+            result.append(each.text)
+    if source != '':
+        result.append(source)
+    if demographic != '':
+        result.append(demographic)
     for each in genres:
-        print(each.text)
+        result.append(each.text)
     for each in actors:
-        print(each.text)
-    for each in themes:
-        print(each.text)
-
+        result.append(each.text.replace('Japanese','').strip('\n'))
+    
+    print(result)
 
 
 def main():
-    get_info('https://myanimelist.net/anime/48736/Sono_Bisque_Doll_wa_Koi_wo_Suru')
+    get_info('https://myanimelist.net/anime/40356/Tate_no_Yuusha_no_Nariagari_Season_2')
+
+    # output_filename = ''
+    # with open(output_filename, 'a') as file_object:
+    #     file_object.write('hello')
+
 
 if __name__=="__main__":
     main()

@@ -21,7 +21,7 @@ def read_csv(filename):
             result.append(anime)
     return result
 
-# Compares the set of info for a and b and returns the intesect
+# Compares the set of info for a and b and returns the intersect
 def compare(a, b):
     #return len(a.info.intersection(b.info))
     return round(random.uniform(0, 1), 2)
