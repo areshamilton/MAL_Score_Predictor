@@ -4,7 +4,7 @@ import anime
 # Reads csv contents and returns as a list of Anime objects
 def read_csv(filename):
     result = []
-    with open(filename, 'r') as csvfile:
+    with open(filename, 'r', encoding='utf-8') as csvfile:
         reader = csv.reader(csvfile)
 
         #next(csvfile) #skips the header
@@ -31,7 +31,7 @@ def find_avg(filename):
     return sum / count
 
 def main():
-    file = 'test.csv'
+    file = 'training.csv'
     avg = find_avg(file)
     print('The average rating for {0} is: {1:.2f}'.format(file,avg))
 
