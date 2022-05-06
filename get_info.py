@@ -13,7 +13,7 @@ def get_info(link):
     soup = BeautifulSoup(html_text, 'lxml')
 
     #title
-    title = soup.find('h1', class_ = "title-name h1_bold_none").text.strip(',')
+    title = soup.find('h1', class_ = "title-name h1_bold_none").text.replace(',','')
 
     #score
     try:
@@ -80,11 +80,11 @@ def get_info(link):
 def main():
     startTime = datetime.now()
     links = []
-    with open('anime_2020_2021.csv', 'r', encoding='utf-8') as reader:
+    with open('anime_2012_2019.csv', 'r', encoding='utf-8') as reader:
         for line in reader.readlines():
             links.append((line.strip('\n')))
 
-    with open('test.csv', 'a', encoding='utf-8') as writer:
+    with open('training.csv', 'a', encoding='utf-8') as writer:
         for link in links:
             output = get_info(link)
             writer.write(str(output).strip('[]')+'\n')
