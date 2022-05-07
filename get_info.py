@@ -12,29 +12,29 @@ def get_info(link):
     html_text = requests.get(link).text
     soup = BeautifulSoup(html_text, 'lxml')
 
-    #title
+    # Title
     title = soup.find('h1', class_ = "title-name h1_bold_none").text.replace(',','')
 
-    #score
+    # Score
     try:
         score = soup.find('span', itemprop = "ratingValue").text
     except AttributeError:
         score = '-1'
 
-    #studio
+    # Studio
     studios = soup.find('span', text = "Studios:")
     studio = studios.find_next_siblings('a')
 
-    #source
+    # Source
     try:
         source = soup.find('span', text = "Source:").next_sibling.strip()
     except AttributeError:
         source = ''
 
-    #This finds both genres and themes
+    # This finds both genres and themes
     genres = soup.find_all('span', itemprop = 'genre')
     
-    #demographic
+    # Demographic
     try:
         demographic = soup.find('span', text = "Demographic:").find_next_sibling().text
     except:
@@ -43,7 +43,7 @@ def get_info(link):
     # Actors
     actors = soup.find_all(class_ ="va-t ar pl4 pr4")
 
-    #build the result
+    # Build the result
     result.append(title)
     result.append(score)
     if studio[0].text != 'add some':
@@ -92,7 +92,7 @@ def main():
             time.sleep(4)
     endTime = datetime.now()
 
-    print('Elapsed time: {hh:mm:ss.ms}',format(endTime - startTime))
+    print('Elapsed time: ',format(endTime - startTime))
 
 if __name__=="__main__":
     main()
