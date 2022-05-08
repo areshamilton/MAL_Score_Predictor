@@ -5,7 +5,7 @@ import find_avg
 
 def main():
     data1 = find_avg.read_csv('test.csv')
-    data2 = find_avg.read_csv('naive_prediction.csv')
+    data2 = find_avg.read_csv('predictions_50.csv')
 
     sum = 0
     count = 0

@@ -51,7 +51,7 @@ struct Anime *read_csv(char filename[])
           dataset[i].rating = strtod(temp, NULL);
       }
 
-      // Everything after title and rating are for comparison and will be added to info
+      // Everything after title and rating are for comparison and will be added to info[]
       if(field_number > 1)
       {
         int index = field_number - 2;

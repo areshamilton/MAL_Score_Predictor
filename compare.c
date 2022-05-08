@@ -2,27 +2,28 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 struct Anime
 {
   char* title;
-  int rank;
   double rating;
-  char* info[3];
+  char* info[50];
+  int info_size;
   double prediction;
-  int avg_count;
+  double avg_count;
 };
 
 
 // this function reads csv contents and returns array of anime
-struct Anime* read_csv(char filename[])
+struct Anime *read_csv(char filename[])
 {
   char buff[1024];
   int row_number = 0;
   int field_number = 0;
   int i = 0;
-  struct Anime* dataset = malloc(sizeof(struct Anime) * 1000);
-  FILE* in_file;
+  struct Anime *dataset = malloc(sizeof(struct Anime) * 2000);
+  FILE *in_file;
   in_file = fopen(filename, "r");
 
   if (in_file == NULL)
@@ -30,42 +31,42 @@ struct Anime* read_csv(char filename[])
     printf("file read failed\n");
     return dataset;
   }
-  printf("%s\n\n", filename);
+
+  printf("Reading: %s\n\n", filename);
   while (fgets(buff, 1000, in_file))
   {
     field_number = 0;
     row_number++;
     // skipping the header
-    if (row_number == 1) continue;
+    //if (row_number == 1) continue;
     char *field = strtok(buff, ",");
 
     while (field)
     {
-      dataset[i].prediction = 0;
-      dataset[i].avg_count = 0;
-      if (field_number == 0) dataset[i].rank = atoi(field);
-      if (field_number == 1)
+      if(field_number == 0)
       {
-        (dataset + i)->title = malloc(strlen(field) + 1);
-        strcpy((dataset + i)->title, field);
+          //printf("%s ",field);
+          (dataset + i)->title = malloc(strlen(field) + 1);
+          strcpy((dataset + i)->title, field);
+
       }
-      if (field_number == 2) dataset[i].rating = strtod(field, NULL);
-      if (field_number == 3)
+      if(field_number == 1)
       {
-        (dataset + i)->info[0] = malloc(strlen(field) + 1);
-        strcpy((dataset + i)->info[0], field);
-      }
-      if (field_number == 4)
-      {
-        (dataset + i)->info[1] = malloc(strlen(field) + 1);
-        strcpy((dataset + i)->info[1], field);
-      }
-      if (field_number == 5)
-      {
-        (dataset + i)->info[2] = malloc(strlen(field) + 1);
-        strcpy((dataset + i)->info[2], field);
+          char *temp = field + 2;
+          temp[strlen(temp)-1] = '\0';
+          dataset[i].rating = strtod(temp, NULL);
+          dataset[i].prediction = 1.0;
+          dataset[i].avg_count = 1.0;
       }
 
+      // Everything after title and rating are for comparison and will be added to info[]
+      if(field_number > 1)
+      {
+        int index = field_number - 2;
+        (dataset + i)->info[index] = malloc(strlen(field) + 1);
+        strcpy((dataset + i)->info[index], field);
+        dataset[i].info_size = index + 1;
+      }
       field = strtok(NULL, ",");
       field_number++;
     }
@@ -81,102 +82,91 @@ void write_csv(struct Anime* dataset)
 {
   FILE* out_file;
   out_file = fopen("predictions.csv", "w+");
-  fprintf(out_file, "Title, Prediction\n");
-  for (unsigned i = 0; i < 10; i++)
+  //fprintf(out_file, "Title, Prediction\n");
+  for (unsigned i = 0; i < 412; i++)
   {
     fprintf(out_file, "%s, %f\n", dataset[i].title, dataset[i].prediction);
   }
   fclose(out_file);
 }
 
-
-// this function compares string similarity using levenshtein distance
-int distance(char* a, char* b)
+double compare(struct Anime a, struct Anime b)
 {
-  unsigned a_size = strlen(a);
-  unsigned b_size = strlen(b);
-  unsigned int comp_matrix[a_size+1][b_size+1];
-  comp_matrix[0][0] = 0;
-
-  for (unsigned i = 0; i <= a_size; i++)
-  {
-    comp_matrix[i][0] = i;
-  }
-  for (unsigned i = 0; i <= b_size; i++)
-  {
-    comp_matrix[0][i] = i;
-  }
-  for (unsigned i = 1; i <= a_size; i++)
-  {
-    char x = a[i-1];
-    for (unsigned j = 1; j <= b_size; j++)
+    double match_count = 0.0;
+    double similarity;
+    for(int i = 0; i < a.info_size; i++)
     {
-      char y = b[j-1];
-      if (x == y)
-      {
-        comp_matrix[i][j] = comp_matrix[i-1][j-1];
-      } else
-      {
-        int min, del, ins, sub;
-        del = comp_matrix[i-1][j] + 1;
-        ins = comp_matrix[i][j-1] + 1;
-        sub = comp_matrix[i-1][j-1] + 1;
-        min = del;
-        if (ins < min) min = ins;
-        if (sub < min) min = sub;
-        comp_matrix[i][j] = min;
-      }
+        for (int j = 0; j < b.info_size; j++)
+        {
+          if (strcmp(a.info[i], b.info[j]) == 0) match_count++;
+        }
     }
-  }
-  return comp_matrix[a_size][b_size];
+    similarity = match_count / ((a.info_size + b.info_size) - match_count);
+    return similarity;
 }
-
-
-// this function returns the greater of two values
-int greater(char* a, char* b)
-{
-  if (strlen(a) >= strlen(b)) return strlen(a);
-  else return strlen(b);
-}
-
 
 int main(int argc, char **argv)
 {
-  omp_set_num_threads(8);
+  omp_set_num_threads(4);
+
+  clock_t begin = clock();
 
   struct Anime* training = read_csv("training.csv");
   struct Anime* testing = read_csv("test.csv");
 
-  // parallel for loop used to compare anime
-  #pragma omp parallel for collapse(2)
-    for (unsigned i = 0; i < 10; i++)
-    {
-      for (unsigned j = 0; j < 40; j++){
-        char* anime_1 = testing[i].title;
-        char* anime_2 = training[j].title;
-        double dis = (double)distance(testing[i].info[1], training[j].info[1]);
-        double length = (double)greater(testing[i].info[1], training[j].info[1]);
-        double similarity = (length - dis) / length;
-        if (similarity >= 0.8)
+  int tid;
+  double local_avg;
+  double local_predict;
+  double similarity_threshold = -1.0;
+  double elapsed = 0.0;
+  double similarity_avg = 0.0;
+
+    //#pragma omp parallel for collapse(2) reduction(+:local_avg,local_predict)
+    for (int i = 0; i < 412; i++)
+      {
+        local_avg = 0.0;
+        local_predict = 0.0;
+        #pragma omp parallel for reduction(+:local_avg,local_predict,similarity_avg)
+        for (int j = 0; j < 1859; j++)
         {
-          testing[i].prediction += training[j].rating;
-          testing[i].avg_count++;
+          double similarity = compare(testing[i], training[j]);
+          similarity_avg += similarity;
+          tid = omp_get_thread_num();
+          printf("Thread [%d] Comparing %s vs %s Similarity: %f\n", 
+                    tid, testing[i].title, training[j].title, similarity);
+          if(similarity >= similarity_threshold && training[j].rating > 0)
+          {
+            local_avg++;
+            local_predict += training[j].rating;
+          }
         }
-        printf("Thread %d - Similarity between %s and %s is %f\n",
-                omp_get_thread_num(), anime_1, anime_2, similarity);
+        testing[i].avg_count = local_avg;
+        testing[i].prediction = local_predict;
       }
-    }
+    
 
   // parallel for loop used to show the average rating of each anime
   // based on ratings of similar anime
-  #pragma omp parallel for
-    for (unsigned i = 0; i < 10; i++)
+  int not_predicted = 0.0;
+  #pragma omp parallel for reduction(+:not_predicted)
+    for (unsigned i = 0; i < 412; i++)
     {
-      testing[i].prediction = testing[i].prediction / testing[i].avg_count;
+      if(testing[i].avg_count > 0)
+      {
+          testing[i].prediction = testing[i].prediction / testing[i].avg_count;
+      }
+      else
+      {
+          testing[i].prediction = -1;
+          not_predicted++;
+      }
       printf("Thread %d: Average rating of %s: %f\n",
               omp_get_thread_num(), testing[i].title, testing[i].prediction);
     }
-    printf("%s", testing[4].title);
+    clock_t end = clock();
+    elapsed = (double)(end - begin) / CLOCKS_PER_SEC;
+    printf("Number of failed predictions: %d\n",not_predicted);
+    printf("Elapsed time in seconds: %f\n", elapsed);
   write_csv(testing);
   free(training);
   free(testing);

@@ -31,7 +31,7 @@ def find_avg(filename):
     return sum / count
 
 def main():
-    file = 'training.csv'
+    file = 'predictions.csv'
     avg = find_avg(file)
     print('The average rating for {0} is: {1:.2f}'.format(file,avg))
 

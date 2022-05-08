@@ -30,9 +30,7 @@ def main():
             line = []
             line.append(each.title)
             line.append(each.rating)
-            line.append(each.info)
-            print(str(line).strip('[]""'))
-            #writer.write(str(line).strip('[]')+'\n')
+            writer.write(str(line).strip('[]')+'\n')
 
 
 if __name__=="__main__":
