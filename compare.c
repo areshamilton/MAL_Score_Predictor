@@ -107,7 +107,7 @@ double compare(struct Anime a, struct Anime b)
 
 int main(int argc, char **argv)
 {
-  omp_set_num_threads(4);
+  omp_set_num_threads(8);
 
   clock_t begin = clock();
 
@@ -121,17 +121,18 @@ int main(int argc, char **argv)
   double elapsed = 0.0;
   double similarity_avg = 0.0;
 
-    //#pragma omp parallel for collapse(2) reduction(+:local_avg,local_predict)
+    #pragma omp parallel for 
     for (int i = 0; i < 412; i++)
       {
         local_avg = 0.0;
         local_predict = 0.0;
+        tid = omp_get_thread_num();
         #pragma omp parallel for reduction(+:local_avg,local_predict,similarity_avg)
         for (int j = 0; j < 1859; j++)
         {
           double similarity = compare(testing[i], training[j]);
           similarity_avg += similarity;
-          tid = omp_get_thread_num();
+          //tid = omp_get_thread_num();
           printf("Thread [%d] Comparing %s vs %s Similarity: %f\n", 
                     tid, testing[i].title, training[j].title, similarity);
           if(similarity >= similarity_threshold && training[j].rating > 0)

@@ -27,7 +27,7 @@ def find_avg(filename):
             sum += value
             count += 1
 
-    
+    print(sum)
     return sum / count
 
 def main():
